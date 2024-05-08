@@ -160,6 +160,8 @@ contract DSCEngine is ReentrancyGuard {
         emit CollateralDipoisted(msg.sender, tokenCollateralAddress, amountCollateral);
 
         bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
+
+        // Reachable ???
         if (!success) {
             revert DSCEngine__TransferFailed();
         }
@@ -232,8 +234,6 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external view {}
-
     /////////////////////////
     // Private Functions ///
     ///////////////////////
@@ -280,14 +280,19 @@ contract DSCEngine is ReentrancyGuard {
     */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+        console.log("Total DSC Minted: ", totalDscMinted); // 10_000000000000000000
+        console.log("Collateral Value in USD: ", collateralValueInUsd);
+        //  ( 20000.000000000000000000 * 50 )               / 100
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION; // Confused
-        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted; // Confused
+        // (10000.000000000000000000 * 1e18)           / 10.000000000000000000
+        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted; // Confused // 1000
     }
 
     // 1. Check health factor ( do they have enough collateral ?)
     // 2. If not, revert
     function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 healthFactor = _healthFactor(user);
+        console.log("Health Factor: ", healthFactor);
         if (healthFactor < MIN_HEALTH_FACTOR) {
             revert DSCEngine__BreaksHealthFactor(healthFactor);
         }
@@ -316,5 +321,49 @@ contract DSCEngine is ReentrancyGuard {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.latestRoundData();
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION; // Confused
+    }
+
+    function getAccountInformation(address user) public view returns (uint256, uint256) {
+        return _getAccountInformation(user);
+    }
+
+    function getPrecision() external pure returns (uint256) {
+        return PRECISION;
+    }
+
+    function getAdditionalFeedPrecision() external pure returns (uint256) {
+        return ADDITIONAL_FEED_PRECISION;
+    }
+
+    function getLiquidationThreshold() external pure returns (uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
+
+    function getLiquidationBonus() external pure returns (uint256) {
+        return LIQUIDATION_BONUS;
+    }
+
+    function getLiquidationPrecision() external pure returns (uint256) {
+        return LIQUIDATION_PRECISION;
+    }
+
+    function getMinHealthFactor() external pure returns (uint256) {
+        return MIN_HEALTH_FACTOR;
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getDsc() external view returns (address) {
+        return address(i_dsc);
+    }
+
+    function getCollateralTokenPriceFeed(address token) external view returns (address) {
+        return s_priceFeeds[token];
+    }
+
+    function getHealthFactor(address user) external view returns (uint256) {
+        return _healthFactor(user);
     }
 }
