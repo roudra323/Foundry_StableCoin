@@ -159,6 +159,8 @@ contract DSCEngine is ReentrancyGuard {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
         emit CollateralDipoisted(msg.sender, tokenCollateralAddress, amountCollateral);
 
+        console.log("DSCE contract Depositecollateral: ", msg.sender, tokenCollateralAddress, amountCollateral);
+
         bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
 
         // Reachable ???
@@ -280,12 +282,22 @@ contract DSCEngine is ReentrancyGuard {
     */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
-        console.log("Total DSC Minted: ", totalDscMinted); // 10_000000000000000000
-        console.log("Collateral Value in USD: ", collateralValueInUsd);
+        // console.log("Total DSC Minted: ", totalDscMinted); // 10_000000000000000000
+        // console.log("Collateral Value in USD: ", collateralValueInUsd);
         //  ( 20000.000000000000000000 * 50 )               / 100
-        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION; // Confused
+        // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION; // Confused
         // (10000.000000000000000000 * 1e18)           / 10.000000000000000000
-        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted; // Confused // 1000
+        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd); // Confused // 1000
+    }
+
+    function _calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
+        internal
+        pure
+        returns (uint256)
+    {
+        if (totalDscMinted == 0) return type(uint256).max;
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
 
     // 1. Check health factor ( do they have enough collateral ?)
@@ -301,6 +313,14 @@ contract DSCEngine is ReentrancyGuard {
     ///////////////////////////////////////
     // Public & External view Functions ///
     ///////////////////////////////////////
+
+    function calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
+        external
+        pure
+        returns (uint256)
+    {
+        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
+    }
 
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
