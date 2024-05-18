@@ -225,7 +225,6 @@ contract DSCEngine is ReentrancyGuard {
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover); // Returns amout of collateral (weth)
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
         uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
-
         _redeemCollateral(collateral, totalCollateralToRedeem, user, msg.sender);
         _burnDsc(debtToCover, user, msg.sender);
         uint256 endingUserHealthFactor = _healthFactor(user);
@@ -243,9 +242,15 @@ contract DSCEngine is ReentrancyGuard {
     function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
         private
     {
+        console.log("Here comes in the _redeemCollateral (begineening of the func)", amountCollateral);
+        console.log(
+            "Here comes in the s_collateralDeposited (begineening of the func)",
+            s_collateralDeposited[from][tokenCollateralAddress]
+        );
         s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
         emit CollateralRedeemed(from, to, tokenCollateralAddress, amountCollateral);
         bool success = IERC20(tokenCollateralAddress).transfer(to, amountCollateral);
+        console.log("Here comes in the _redeemCollateral (after of the func)", amountCollateral);
         if (!success) {
             revert DSCEngine__TransferFailed();
         }
@@ -381,6 +386,10 @@ contract DSCEngine is ReentrancyGuard {
 
     function getCollateralTokenPriceFeed(address token) external view returns (address) {
         return s_priceFeeds[token];
+    }
+
+    function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
+        return s_collateralDeposited[user][token];
     }
 
     function getHealthFactor(address user) external view returns (uint256) {
