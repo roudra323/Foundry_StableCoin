@@ -158,11 +158,7 @@ contract DSCEngine is ReentrancyGuard {
     {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
         emit CollateralDipoisted(msg.sender, tokenCollateralAddress, amountCollateral);
-
-        console.log("DSCE contract Depositecollateral: ", msg.sender, tokenCollateralAddress, amountCollateral);
-
         bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
-
         // Reachable ???
         if (!success) {
             revert DSCEngine__TransferFailed();
@@ -242,15 +238,9 @@ contract DSCEngine is ReentrancyGuard {
     function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
         private
     {
-        console.log("Here comes in the _redeemCollateral (begineening of the func)", amountCollateral);
-        console.log(
-            "Here comes in the s_collateralDeposited (begineening of the func)",
-            s_collateralDeposited[from][tokenCollateralAddress]
-        );
         s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
         emit CollateralRedeemed(from, to, tokenCollateralAddress, amountCollateral);
         bool success = IERC20(tokenCollateralAddress).transfer(to, amountCollateral);
-        console.log("Here comes in the _redeemCollateral (after of the func)", amountCollateral);
         if (!success) {
             revert DSCEngine__TransferFailed();
         }
@@ -287,8 +277,8 @@ contract DSCEngine is ReentrancyGuard {
     */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
-        // console.log("Total DSC Minted: ", totalDscMinted); // 10_000000000000000000
-        // console.log("Collateral Value in USD: ", collateralValueInUsd);
+        console.log("Total DSC Minted: ", totalDscMinted); // 10_000000000000000000
+        console.log("Collateral Value in USD: ", collateralValueInUsd);
         //  ( 20000.000000000000000000 * 50 )               / 100
         // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION; // Confused
         // (10000.000000000000000000 * 1e18)           / 10.000000000000000000

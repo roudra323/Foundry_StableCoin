@@ -38,8 +38,8 @@ contract InvariantsTest is StdInvariant, Test {
         uint256 wbtcValue = dsce.getUsdValue(wbtc, totalWbtcDeposited);
 
         console.log("totalSupply: ", totalSupply);
-        console.log("totalWethDeposited: ", totalWethDeposited);
-        console.log("totalWbtcDeposited: ", totalWbtcDeposited);
+        console.log("wethValue: ", wethValue);
+        console.log("wbtcValue: ", wbtcValue);
 
         uint256 totalValue = wethValue + wbtcValue;
         require(totalValue >= totalSupply, "Invariant failed");
