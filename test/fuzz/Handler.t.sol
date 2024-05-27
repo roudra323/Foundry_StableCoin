@@ -50,9 +50,15 @@ contract Handler is Test {
         uint256 amountCollateral = bound(amount, 1, MAX_DEPOSIT_SIZE);
 
         vm.startPrank(msg.sender);
+        console.log("Before mint in handler");
         collateral.mint(msg.sender, amountCollateral);
+        console.log("After mint in handler");
+        console.log("Before Approve in handler");
         collateral.approve(address(dsce), amountCollateral);
+        console.log("After Approve in handler");
+        console.log("Before Deposite in handler");
         dsce.depositeCollateral(address(collateral), amountCollateral);
+        console.log("After Deposite in handler");
         vm.stopPrank();
         userWithCollateralDeposited.push(msg.sender);
     }

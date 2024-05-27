@@ -44,4 +44,15 @@ contract InvariantsTest is StdInvariant, Test {
         uint256 totalValue = wethValue + wbtcValue;
         require(totalValue >= totalSupply, "Invariant failed");
     }
+
+    function invariant_gettersShouldNotRevert() public view {
+        dsce.getPrecision();
+        dsce.getAdditionalFeedPrecision();
+        dsce.getLiquidationThreshold();
+        dsce.getLiquidationBonus();
+        dsce.getLiquidationPrecision();
+        dsce.getMinHealthFactor();
+        dsce.getCollateralTokens();
+        dsce.getDsc();
+    }
 }
