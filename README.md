@@ -1,66 +1,128 @@
-## Foundry
+# Decentralized Stablecoin (DSC)
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+A fully decentralized, exogenously collateralized stablecoin system pegged to the US Dollar.
 
-Foundry consists of:
+## Overview
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+DSC (Decentralized Stablecoin) is an algorithmic stablecoin designed to maintain a 1:1 peg with the US Dollar. It's:
 
-## Documentation
+- **Exogenously Collateralized**: Backed by assets outside the protocol (WETH, WBTC)
+- **Dollar Pegged**: Maintains a target value of $1 USD
+- **Algorithmically Stable**: Uses code-based mechanisms to maintain stability
+- **Overcollateralized**: Always maintains collateral value greater than the minted stablecoin value
 
-https://book.getfoundry.sh/
+This system is similar to MakerDAO's DAI but with simpler mechanics: no governance, no fees, and only WETH and WBTC as collateral.
 
-## Usage
+## Smart Contracts
 
-### Build
+### DSCEngine.sol
 
-```shell
-$ forge build
+The core contract that manages the minting, burning, and liquidation processes:
+
+- Handles collateral deposits and withdrawals
+- Controls the minting and burning of DSC tokens
+- Manages liquidations for undercollateralized positions
+- Maintains the health factor (collateralization ratio) for all users
+
+### DecentralizedStableCoin.sol
+
+The ERC20 token implementation of the stablecoin:
+
+- Implements standard ERC20 functionality
+- Adds burn functionality for redemption
+- Controlled by the DSCEngine contract
+
+## Key Features
+
+### Collateralization System
+
+- **Minimum Health Factor**: 1.0 (representing 100%)
+- **Liquidation Threshold**: 50% (positions must maintain 200% collateralization)
+- **Liquidation Bonus**: 50% bonus for liquidators
+
+### Liquidation Process
+
+When a user's position becomes undercollateralized (health factor < 1.0):
+1. Any user can trigger liquidation
+2. The liquidator pays back some of the user's debt
+3. In return, they receive an equivalent amount of collateral plus a bonus
+4. This process helps maintain the protocol's overall solvency
+
+### Price Feeds
+
+Uses Chainlink price feeds to obtain reliable collateral valuations.
+
+## Functions
+
+### User Operations
+
+- `depositeCollateralAndMintDSC`: Deposit collateral and mint DSC in one transaction
+- `depositeCollateral`: Deposit supported tokens as collateral
+- `redeemCollateralForDsc`: Burn DSC and redeem collateral in one transaction
+- `redeemCollateral`: Withdraw collateral (subject to maintaining health factor)
+- `mintDsc`: Mint new DSC tokens (subject to collateralization requirements)
+- `burnDsc`: Burn DSC tokens
+
+### Liquidation
+
+- `liquidateDsc`: Liquidate undercollateralized positions
+
+### View Functions
+
+- `getHealthFactor`: Check a user's health factor
+- `getAccountCollateralValueInUSD`: Get the USD value of a user's collateral
+- `getAccountInformation`: Get a user's DSC debt and collateral value
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js and npm
+- Foundry/Forge for testing
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/dsc-stablecoin.git
+cd dsc-stablecoin
 ```
 
-### Test
-
-```shell
-$ forge test
+2. Install dependencies:
+```bash
+npm install
 ```
 
-### Format
-
-```shell
-$ forge fmt
+3. Compile contracts:
+```bash
+forge build
 ```
 
-### Gas Snapshots
+### Testing
 
-```shell
-$ forge snapshot
+Run the test suite:
+```bash
+forge test
 ```
 
-### Anvil
+### Deployment
 
-```shell
-$ anvil
+Deploy to a local network:
+```bash
+forge script script/DeployDSC.s.sol --rpc-url http://localhost:8545 --broadcast
 ```
 
-### Deploy
+## Security Considerations
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+- The system is designed to be overcollateralized at all times
+- Liquidation mechanisms help maintain solvency
+- Price feed oracles are checked for staleness
+- Reentrancy protection is implemented
 
-### Cast
+## License
 
-```shell
-$ cast <subcommand>
-```
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Help
+## Author
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+[@roudra323](https://github.com/roudra323)
